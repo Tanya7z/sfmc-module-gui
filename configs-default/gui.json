@@ -1,0 +1,16 @@
+{
+  "menu_title": "§l§eSFMC 综合服务中心",
+  "admin_title": "§l§cSFMC 管理员控制台",
+  "empty_placeholder": "当前暂无可用服务",
+  "show_live_dashboard": true,
+  "enable_shortcut_item": true,
+  "shortcut_item": {
+    "type": "minecraft:clock",
+    "name": "§e§l快捷导航 §7[右键/长按打开]",
+    "lore": ["§7随时呼出服务器综合服务菜单"],
+    "give_on_first_join": false,
+    "slot": 8
+  },
+  "busy_retry_ticks": 10,
+  "busy_max_retries": 16
+}

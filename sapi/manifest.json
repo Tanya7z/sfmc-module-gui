@@ -1,0 +1,65 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/gh/DogeLakeDev/ScriptsForMinecraftServer@latest/modules/sdk/%40sfmc-sdk/schemas/sapi-manifest.v2.schema.json",
+  "schemaVersion": 2,
+  "id": "gui",
+  "name": "交互导航",
+  "configKey": "gui",
+  "enabledByDefault": true,
+  "canDisable": false,
+  "requires": [],
+  "permissions": [
+    "config:read:gui",
+    "command:menu",
+    "command:cd",
+    "command:admin",
+    "command:sfmcadmin",
+    "service:gui.registerMenuItem",
+    "service:gui.unregisterMenuItem",
+    "service:gui.registerAdminItem",
+    "service:gui.openMainMenu",
+    "service:gui.openAdminPanel",
+    "service:gui.confirm",
+    "service:gui.showForm"
+  ],
+  "services": {
+    "provides": [
+      {
+        "name": "gui.registerMenuItem",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      },
+      {
+        "name": "gui.unregisterMenuItem",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      },
+      {
+        "name": "gui.registerAdminItem",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      },
+      {
+        "name": "gui.openMainMenu",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      },
+      {
+        "name": "gui.openAdminPanel",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      },
+      {
+        "name": "gui.confirm",
+        "input": { "type": "object" },
+        "output": { "type": "boolean" }
+      },
+      {
+        "name": "gui.showForm",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      }
+    ],
+    "requires": []
+  },
+  "notes": "零 requires；MenuNavigator SPA；Action/Modal 封装；gui.showForm 8s 重试。"
+}
