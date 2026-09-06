@@ -9,10 +9,6 @@
   "requires": [],
   "permissions": [
     "config:read:gui",
-    "command:menu",
-    "command:cd",
-    "command:admin",
-    "command:sfmcadmin",
     "service:gui.registerMenuItem",
     "service:gui.unregisterMenuItem",
     "service:gui.registerAdminItem",
@@ -25,38 +21,66 @@
     "provides": [
       {
         "name": "gui.registerMenuItem",
-        "input": { "type": "object" },
-        "output": { "type": "object" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        }
       },
       {
         "name": "gui.unregisterMenuItem",
-        "input": { "type": "object" },
-        "output": { "type": "object" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        }
       },
       {
         "name": "gui.registerAdminItem",
-        "input": { "type": "object" },
-        "output": { "type": "object" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        }
       },
       {
         "name": "gui.openMainMenu",
-        "input": { "type": "object" },
-        "output": { "type": "object" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        }
       },
       {
         "name": "gui.openAdminPanel",
-        "input": { "type": "object" },
-        "output": { "type": "object" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        }
       },
       {
         "name": "gui.confirm",
-        "input": { "type": "object" },
-        "output": { "type": "boolean" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "boolean"
+        }
       },
       {
         "name": "gui.showForm",
-        "input": { "type": "object" },
-        "output": { "type": "object" }
+        "input": {
+          "type": "object"
+        },
+        "output": {
+          "type": "object"
+        }
       }
     ],
     "requires": []
