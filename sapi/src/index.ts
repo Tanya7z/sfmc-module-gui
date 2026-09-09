@@ -7,8 +7,16 @@ import { config } from "@sfmc-bds/sdk/sapi/config";
 import { ModuleRegistry } from "@sfmc-bds/sdk/module-loader";
 import { Command, debug, Permission } from "@sfmc-bds/sdk/sapi/runtime";
 import { service } from "@sfmc-bds/sdk/sapi/service";
-import { showConfirm, showFormWithBusyRetry, type ShowableForm } from "./forms.js";
-import { openAdminPanel, openMainMenu, type GuiRuntimeConfig } from "./menus.js";
+import {
+  showConfirm,
+  showFormWithBusyRetry,
+  type ShowableForm,
+} from "./forms.js";
+import {
+  openAdminPanel,
+  openMainMenu,
+  type GuiRuntimeConfig,
+} from "./menus.js";
 import {
   clearRegistries,
   registerAdminItem,
@@ -44,6 +52,42 @@ function asMenuItem(input: Record<string, unknown>): MenuItemDefinition | null {
   return input as unknown as MenuItemDefinition;
 }
 
+function registerCommands(): void {
+  const openMenu = (player: Player | undefined) => {
+    if (!player) {
+      debug.i("GUI", "menu 需由玩家执行");
+      return;
+    }
+    void openMainMenu(player, runtimeCfg);
+  };
+  Command.register("menu", "menu.use", openMenu, "打开综合服务菜单", MODULE_ID);
+  Command.register("cd", "menu.use", openMenu, "打开综合服务菜单", MODULE_ID);
+
+  const openAdmin = (player: Player | undefined) => {
+    if (!player) {
+      debug.i("GUI", "admin 需由玩家执行");
+      return;
+    }
+    void openAdminPanel(player, runtimeCfg);
+  };
+  Command.register(
+    "admin",
+    "gui.admin",
+    openAdmin,
+    "打开管理员控制台",
+    MODULE_ID,
+  );
+  Command.register(
+    "sfmcadmin",
+    "gui.admin",
+    openAdmin,
+    "打开管理员控制台",
+    MODULE_ID,
+  );
+}
+
+registerCommands();
+
 ModuleRegistry.register({
   id: MODULE_ID,
   afterWorldLoad: true,
@@ -51,27 +95,6 @@ ModuleRegistry.register({
     registerPermissions() {
       Permission.register("menu.use", Permission.Any);
       Permission.register("gui.admin", Permission.Admin);
-    },
-    registerCommands() {
-      const openMenu = (player: Player | undefined) => {
-        if (!player) {
-          debug.i("GUI", "menu 需由玩家执行");
-          return;
-        }
-        void openMainMenu(player, runtimeCfg);
-      };
-      Command.register("menu", "menu.use", openMenu, "打开综合服务菜单", MODULE_ID);
-      Command.register("cd", "menu.use", openMenu, "打开综合服务菜单", MODULE_ID);
-
-      const openAdmin = (player: Player | undefined) => {
-        if (!player) {
-          debug.i("GUI", "admin 需由玩家执行");
-          return;
-        }
-        void openAdminPanel(player, runtimeCfg);
-      };
-      Command.register("admin", "gui.admin", openAdmin, "打开管理员控制台", MODULE_ID);
-      Command.register("sfmcadmin", "gui.admin", openAdmin, "打开管理员控制台", MODULE_ID);
     },
     registerEvents() {
       const itemUseCb = world.afterEvents.itemUse.subscribe((ev) => {
@@ -94,7 +117,15 @@ ModuleRegistry.register({
       // 防丢：尝试拦截扔出快捷道具（若 API 可用）
       const beforeDrop = (
         world.beforeEvents as unknown as {
-          itemUse?: { subscribe: (cb: (e: { source: Player; itemStack?: { typeId: string }; cancel?: boolean }) => void) => unknown };
+          itemUse?: {
+            subscribe: (
+              cb: (e: {
+                source: Player;
+                itemStack?: { typeId: string };
+                cancel?: boolean;
+              }) => void,
+            ) => unknown;
+          };
         }
       ).itemUse;
       if (beforeDrop?.subscribe) {
@@ -128,13 +159,17 @@ ModuleRegistry.register({
       const maxRetries = await config.get<number>("busy_max_retries");
 
       if (typeof title === "string" && title) runtimeCfg.menu_title = title;
-      if (typeof adminTitle === "string" && adminTitle) runtimeCfg.admin_title = adminTitle;
-      if (typeof empty === "string" && empty) runtimeCfg.empty_placeholder = empty;
+      if (typeof adminTitle === "string" && adminTitle)
+        runtimeCfg.admin_title = adminTitle;
+      if (typeof empty === "string" && empty)
+        runtimeCfg.empty_placeholder = empty;
       if (typeof live === "boolean") runtimeCfg.show_live_dashboard = live;
       if (typeof shortcut === "boolean") enableShortcut = shortcut;
       if (shortcutItem?.type) shortcutType = shortcutItem.type;
-      if (typeof retryTicks === "number" && retryTicks > 0) busyRetryTicks = retryTicks;
-      if (typeof maxRetries === "number" && maxRetries > 0) busyMaxRetries = maxRetries;
+      if (typeof retryTicks === "number" && retryTicks > 0)
+        busyRetryTicks = retryTicks;
+      if (typeof maxRetries === "number" && maxRetries > 0)
+        busyMaxRetries = maxRetries;
 
       unprovide.push(
         service.provide("gui.registerMenuItem", (input) => {
@@ -189,9 +224,12 @@ ModuleRegistry.register({
         service.provide("gui.showForm", async (input) => {
           const player = findPlayer(String(input.playerId ?? ""));
           const form = input.form as ShowableForm | undefined;
-          if (!player || !form || typeof form.show !== "function") return undefined;
+          if (!player || !form || typeof form.show !== "function")
+            return undefined;
           const maxRetries =
-            typeof input.maxRetries === "number" ? input.maxRetries : busyMaxRetries;
+            typeof input.maxRetries === "number"
+              ? input.maxRetries
+              : busyMaxRetries;
           return showFormWithBusyRetry(player, form, {
             maxRetries,
             retryTicks: busyRetryTicks,
@@ -199,7 +237,10 @@ ModuleRegistry.register({
         }),
       );
 
-      debug.i("GUI", `init shortcut=${enableShortcut} retries=${busyMaxRetries}`);
+      debug.i(
+        "GUI",
+        `init shortcut=${enableShortcut} retries=${busyMaxRetries}`,
+      );
     },
     cleanup() {
       for (const off of unprovide.splice(0, unprovide.length)) {
