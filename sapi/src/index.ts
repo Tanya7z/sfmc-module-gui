@@ -60,8 +60,17 @@ function registerCommands(): void {
     }
     void openMainMenu(player, runtimeCfg);
   };
-  Command.register("menu", "menu.use", openMenu, "打开综合服务菜单", MODULE_ID);
-  Command.register("cd", "menu.use", openMenu, "打开综合服务菜单", MODULE_ID);
+  Command.register(
+    "menu",
+    "menu.use",
+    openMenu,
+    "打开综合服务菜单",
+    MODULE_ID,
+    undefined,
+    {
+      aliases: ["m"],
+    },
+  );
 
   const openAdmin = (player: Player | undefined) => {
     if (!player) {
@@ -72,13 +81,6 @@ function registerCommands(): void {
   };
   Command.register(
     "admin",
-    "gui.admin",
-    openAdmin,
-    "打开管理员控制台",
-    MODULE_ID,
-  );
-  Command.register(
-    "sfmcadmin",
     "gui.admin",
     openAdmin,
     "打开管理员控制台",
