@@ -1,0 +1,24 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/gh/DogeLakeDev/ScriptsForMinecraftServer@latest/modules/sdk/%40sfmc-sdk/schemas/ui-feature.v1.schema.json",
+  "formatVersion": 1,
+  "moduleId": "gui",
+  "name": "声明式 UI 控件目录",
+  "notes": "开发用测试菜单，覆盖当前运行时已接线的全部声明。",
+  "entries": [
+    {
+      "id": "gui.catalog",
+      "surface": "admin",
+      "group": "debug",
+      "title": "UI 控件目录",
+      "description": "查看 header/text/image/输入控件/动作等声明是否可用",
+      "order": 90,
+      "permission": "gui.catalog",
+      "target": "gui.catalog.home"
+    }
+  ],
+  "screens": [
+    { "id": "gui.catalog.home", "file": "screens/home.ui.json" },
+    { "id": "gui.catalog.widgets", "file": "screens/widgets.ui.json" },
+    { "id": "gui.catalog.logic", "file": "screens/logic.ui.json" }
+  ]
+}

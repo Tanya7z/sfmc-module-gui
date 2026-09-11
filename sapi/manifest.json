@@ -14,7 +14,9 @@
     "service:gui.listEntries",
     "service:gui.openScreen",
     "service:gui.confirm",
-    "service:gui.showForm"
+    "service:gui.showForm",
+    "service:gui.catalog.demo",
+    "service:gui.catalog.echo"
   ],
   "services": {
     "provides": [
@@ -47,9 +49,19 @@
         "name": "gui.showForm",
         "input": { "type": "object" },
         "output": { "type": "object" }
+      },
+      {
+        "name": "gui.catalog.demo",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
+      },
+      {
+        "name": "gui.catalog.echo",
+        "input": { "type": "object" },
+        "output": { "type": "object" }
       }
     ],
     "requires": []
   },
-  "notes": "只负责声明式页面注册、解释和显示；主菜单、管理员聚合页与快捷道具由独立模块实现。"
+  "notes": "声明式页面运行时，附带 /c:catalog 控件目录供目视核对全部 JSON 声明。"
 }

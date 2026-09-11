@@ -1,0 +1,59 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/gh/DogeLakeDev/ScriptsForMinecraftServer@latest/modules/sdk/%40sfmc-sdk/schemas/ui-screen.v1.schema.json",
+  "formatVersion": 1,
+  "id": "gui.catalog.home",
+  "name": "控件目录首页",
+  "presentation": "menu",
+  "title": "声明式 UI 目录",
+  "body": [
+    {
+      "id": "title",
+      "type": "header",
+      "text": "CustomForm 声明目录",
+      "tone": "primary"
+    },
+    {
+      "id": "intro",
+      "type": "text",
+      "text": "用 /c:catalog 打开。下面按页面拆开全部已接线声明。",
+      "tone": "muted"
+    },
+    {
+      "id": "summary",
+      "type": "info",
+      "tone": "accent",
+      "items": [
+        "玩家：{{player.name}}",
+        "控件页：输入、图像、tone、tooltip",
+        "逻辑页：when / each / 动作 / 效果"
+      ]
+    },
+    { "id": "split", "type": "divider" },
+    {
+      "id": "open-widgets",
+      "type": "button",
+      "label": "打开控件页",
+      "description": "header/text/info 以外的可见控件",
+      "tone": "primary",
+      "trigger": {
+        "type": "navigate",
+        "to": "gui.catalog.widgets",
+        "params": { "from": "home" }
+      }
+    },
+    {
+      "id": "open-logic",
+      "type": "button",
+      "label": "打开逻辑页",
+      "tooltip": "when、each、confirm、setState",
+      "trigger": { "type": "navigate", "to": "gui.catalog.logic" }
+    },
+    {
+      "id": "close",
+      "type": "button",
+      "label": "关闭",
+      "tone": "muted",
+      "trigger": { "type": "close" }
+    }
+  ]
+}

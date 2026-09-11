@@ -7,8 +7,16 @@
 import { Player, world } from "@minecraft/server";
 import { ModuleRegistry } from "@sfmc-bds/sdk/module-loader";
 import { config } from "@sfmc-bds/sdk/sapi/config";
-import { debug } from "@sfmc-bds/sdk/sapi/runtime";
+import {
+  debug,
+  Permission,
+} from "@sfmc-bds/sdk/sapi/runtime";
 import { provide } from "@sfmc-bds/sdk/sapi/service";
+import {
+  provideCatalogServices,
+  registerCatalogCommands,
+  registerCatalogUi,
+} from "./catalog.js";
 import {
   clearDeclarativeFeatures,
   listDeclarativeEntries,
@@ -36,6 +44,7 @@ function findPlayer(playerId: string): Player | undefined {
  * 输入与返回值均为纯 JSON，可安全通过进程内总线或未来的传输层。
  */
 const unprovide = [
+  ...provideCatalogServices(),
   provide("gui.registerFeature", (input) => registerDeclarativeFeature(input)),
   provide("gui.unregisterFeature", (input) =>
     unregisterDeclarativeFeature(String(input.moduleId ?? "")),
@@ -81,10 +90,15 @@ const unprovide = [
   }),
 ];
 
+registerCatalogCommands();
+
 ModuleRegistry.register({
   id: MODULE_ID,
   afterWorldLoad: true,
   lifecycle: {
+    registerPermissions() {
+      Permission.register("gui.catalog", Permission.Any);
+    },
     async init() {
       const retryTicks = await config.get<number>("busy_retry_ticks");
       const maxRetries = await config.get<number>("busy_max_retries");
@@ -94,6 +108,7 @@ ModuleRegistry.register({
       if (typeof maxRetries === "number" && maxRetries > 0) {
         busyMaxRetries = maxRetries;
       }
+      await registerCatalogUi();
       debug.i("GUI", `declarative runtime ready retries=${busyMaxRetries}`);
     },
     cleanup() {
