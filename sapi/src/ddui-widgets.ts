@@ -57,3 +57,34 @@ function buttonToneMarker(tone: unknown): string {
 export function customFormButtonLabel(label: string, tone?: unknown): string {
   return buttonToneMarker(tone) + label;
 }
+
+/** 按钮没有 description 槽位；显式 tooltip 优先，否则回退到 description。 */
+export function customFormButtonTooltip(node: {
+  tooltip?: unknown;
+  description?: unknown;
+}): string | undefined {
+  const tooltip = text(node.tooltip);
+  if (tooltip) return tooltip;
+  const fallback = text(node.description);
+  return fallback || undefined;
+}
+
+export type CustomFormFieldOptions = {
+  description?: string;
+  tooltip?: string;
+  disabled?: boolean;
+};
+
+/** 输入控件：description 与 tooltip 分列，disabled 仅在为 true 时写出。 */
+export function customFormFieldOptions(args: {
+  description?: string;
+  tooltip?: string;
+  disabled?: boolean;
+}): CustomFormFieldOptions {
+  const options: CustomFormFieldOptions = {};
+  if (args.description) options.description = args.description;
+  if (args.tooltip) options.tooltip = args.tooltip;
+  if (args.disabled) options.disabled = true;
+  return options;
+}
+

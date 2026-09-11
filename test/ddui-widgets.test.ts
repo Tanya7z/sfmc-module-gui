@@ -3,6 +3,8 @@ import test from "node:test";
 import {
   customFormButtonImageDetails,
   customFormButtonLabel,
+  customFormButtonTooltip,
+  customFormFieldOptions,
   customFormImageArgs,
 } from "../sapi/src/ddui-widgets.ts";
 
@@ -37,3 +39,27 @@ test("按钮 tone 使用剥离格式码后仍可见的标记，而不是 § 色�
   assert.equal(customFormButtonLabel("打开"), "打开");
   assert.equal(/§/.test(customFormButtonLabel("删除", "danger")), false);
 });
+
+test("按钮 tooltip 优先于 description，缺省时回退 description", () => {
+  assert.equal(
+    customFormButtonTooltip({ tooltip: "悬停", description: "说明" }),
+    "悬停",
+  );
+  assert.equal(customFormButtonTooltip({ description: "说明" }), "说明");
+  assert.equal(customFormButtonTooltip({}), undefined);
+});
+
+test("输入控件 description 与 tooltip 分列，并可带禁用", () => {
+  assert.deepEqual(
+    customFormFieldOptions({
+      description: "下方说明",
+      tooltip: "悬停",
+      disabled: true,
+    }),
+    { description: "下方说明", tooltip: "悬停", disabled: true },
+  );
+  assert.deepEqual(customFormFieldOptions({ description: "下方说明" }), {
+    description: "下方说明",
+  });
+});
+

@@ -24,6 +24,8 @@ import { service } from "@sfmc-bds/sdk/sapi/service";
 import {
   customFormButtonImageDetails,
   customFormButtonLabel,
+  customFormButtonTooltip,
+  customFormFieldOptions,
   customFormImageArgs,
 } from "./ddui-widgets.js";
 
@@ -190,6 +192,33 @@ function tonePrefix(tone: unknown): string {
       return "";
   }
 }
+
+function boundText(value: unknown, scope: JsonObject): string {
+  return text(bindString(text(value), scope));
+}
+
+function widgetDisabled(rawNode: JsonObject, scope: JsonObject): boolean {
+  return (
+    rawNode.disabledWhen !== undefined &&
+    Boolean(expression(rawNode.disabledWhen, scope))
+  );
+}
+
+function widgetFieldOptions(
+  rawNode: JsonObject,
+  scope: JsonObject,
+  extra: Record<string, unknown> = {},
+) {
+  return {
+    ...customFormFieldOptions({
+      description: boundText(rawNode.description, scope),
+      tooltip: boundText(rawNode.tooltip, scope),
+      disabled: widgetDisabled(rawNode, scope),
+    }),
+    ...extra,
+  };
+}
+
 
 function screenState(session: RuntimeSession, screen: JsonObject): JsonObject {
   const result: JsonObject = {};
@@ -586,36 +615,31 @@ function renderNodes(
       case "textField": {
         const binding = stringBinding(session, screen, bindName(rawNode));
         page.textField(
-          text(bindString(text(rawNode.label), scope)),
+          boundText(rawNode.label, scope),
           binding.control as ObservableString,
-          {
-            description: text(bindString(text(rawNode.description), scope)),
-          },
+          widgetFieldOptions(rawNode, scope),
         );
         break;
       }
       case "toggle": {
         const binding = booleanBinding(session, screen, bindName(rawNode));
         page.toggle(
-          text(bindString(text(rawNode.label), scope)),
+          boundText(rawNode.label, scope),
           binding.control as ObservableBoolean,
-          {
-            description: text(bindString(text(rawNode.description), scope)),
-          },
+          widgetFieldOptions(rawNode, scope),
         );
         break;
       }
       case "slider": {
         const binding = numberBinding(session, screen, bindName(rawNode));
         page.slider(
-          text(bindString(text(rawNode.label), scope)),
+          boundText(rawNode.label, scope),
           binding.control as ObservableNumber,
           Number(rawNode.min),
           Number(rawNode.max),
-          {
+          widgetFieldOptions(rawNode, scope, {
             step: typeof rawNode.step === "number" ? rawNode.step : 1,
-            description: text(bindString(text(rawNode.description), scope)),
-          },
+          }),
         );
         break;
       }
@@ -630,41 +654,36 @@ function renderNodes(
           options,
         );
         page.dropdown(
-          text(bindString(text(rawNode.label), scope)),
+          boundText(rawNode.label, scope),
           binding.control as ObservableNumber,
           options.map((option, index) => ({
             label: text(option.label),
             value: index,
           })),
-          { description: text(bindString(text(rawNode.description), scope)) },
+          widgetFieldOptions(rawNode, scope),
         );
         break;
       }
       case "button": {
-        const disabled =
-          rawNode.disabledWhen !== undefined &&
-          Boolean(expression(rawNode.disabledWhen, scope));
+        const disabled = widgetDisabled(rawNode, scope);
         const imageDetails = customFormButtonImageDetails({
           icon: bindString(text(rawNode.icon), scope),
           iconPack: bindString(text(rawNode.iconPack), scope),
         });
+        const tooltip = customFormButtonTooltip({
+          tooltip: boundText(rawNode.tooltip, scope),
+          description: boundText(rawNode.description, scope),
+        });
         page.button(
-          customFormButtonLabel(
-            text(bindString(text(rawNode.label), scope)),
-            rawNode.tone,
-          ),
+          customFormButtonLabel(boundText(rawNode.label, scope), rawNode.tone),
           () => {
             scope = makeScope(session, screen, aliases);
-            if (
-              rawNode.disabledWhen !== undefined &&
-              expression(rawNode.disabledWhen, scope)
-            )
-              return;
+            if (widgetDisabled(rawNode, scope)) return;
             void trigger(rawNode.trigger, session, screen, aliases, status);
           },
           {
             disabled,
-            tooltip: text(bindString(text(rawNode.description), scope)),
+            ...(tooltip ? { tooltip } : {}),
             ...(imageDetails ? { imageDetails } : {}),
           },
         );
