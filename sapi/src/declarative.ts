@@ -21,6 +21,11 @@ import {
   type Page,
 } from "@sfmc-bds/sdk/sapi/runtime";
 import { service } from "@sfmc-bds/sdk/sapi/service";
+import {
+  customFormButtonImageDetails,
+  customFormButtonLabel,
+  customFormImageArgs,
+} from "./ddui-widgets.js";
 
 type JsonObject = Record<string, unknown>;
 
@@ -564,9 +569,14 @@ function renderNodes(
           );
         }
         break;
-      case "image":
-        page.image(text(bindString(text(rawNode.source), scope)), "");
+      case "image": {
+        const image = customFormImageArgs({
+          source: bindString(text(rawNode.source), scope),
+          pack: bindString(text(rawNode.pack), scope),
+        });
+        if (image) page.image(image.src, image.pack);
         break;
+      }
       case "divider":
         page.divider();
         break;
@@ -634,8 +644,15 @@ function renderNodes(
         const disabled =
           rawNode.disabledWhen !== undefined &&
           Boolean(expression(rawNode.disabledWhen, scope));
+        const imageDetails = customFormButtonImageDetails({
+          icon: bindString(text(rawNode.icon), scope),
+          iconPack: bindString(text(rawNode.iconPack), scope),
+        });
         page.button(
-          text(bindString(text(rawNode.label), scope)),
+          customFormButtonLabel(
+            text(bindString(text(rawNode.label), scope)),
+            rawNode.tone,
+          ),
           () => {
             scope = makeScope(session, screen, aliases);
             if (
@@ -648,6 +665,7 @@ function renderNodes(
           {
             disabled,
             tooltip: text(bindString(text(rawNode.description), scope)),
+            ...(imageDetails ? { imageDetails } : {}),
           },
         );
         break;
