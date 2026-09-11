@@ -2,7 +2,7 @@
   "name": "@sfmc-bds/module-gui",
   "version": "0.2.0",
   "type": "module",
-  "description": "SAPI module: 交互导航中枢",
+  "description": "SAPI module: 声明式 JSON 界面运行时",
   "main": "sapi/src/index.ts",
   "exports": {
     ".": "./sapi/src/index.ts"
@@ -44,4 +44,3 @@
     "node": ">=22.13.0"
   }
 }
-
