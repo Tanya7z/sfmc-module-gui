@@ -6,6 +6,7 @@
  */
 
 import type { Player } from "@minecraft/server";
+import * as serverUi from "@minecraft/server-ui";
 import type {
   ObservableBoolean,
   ObservableNumber,
@@ -21,13 +22,22 @@ import {
   type Page,
 } from "@sfmc-bds/sdk/sapi/runtime";
 import { service } from "@sfmc-bds/sdk/sapi/service";
+import { resolveDisabledControl } from "./disabled-when.js";
 import {
   customFormButtonImageDetails,
   customFormButtonLabel,
   customFormButtonTooltip,
+  customFormDropdownItems,
   customFormFieldOptions,
   customFormImageArgs,
+  customFormImageOptions,
 } from "./ddui-widgets.js";
+
+const ObservableBooleanCtor = (
+  serverUi as Record<string, unknown>
+).ObservableBoolean as
+  | (new (data: boolean) => ObservableBoolean)
+  | undefined;
 
 type JsonObject = Record<string, unknown>;
 
@@ -81,6 +91,7 @@ type RuntimeSession = {
   params: Map<string, JsonObject>;
   data: Map<string, JsonObject>;
   bindings: Map<string, StateBinding>;
+  disabledControls: Map<string, ObservableBoolean>;
 };
 
 const features = new Map<string, RuntimeFeature>();
@@ -204,19 +215,100 @@ function widgetDisabled(rawNode: JsonObject, scope: JsonObject): boolean {
   );
 }
 
+function obsBoolView(value = false): ObservableBoolean {
+  if (!ObservableBooleanCtor) {
+    throw new Error(
+      "当前环境下的 @minecraft/server-ui 不支持 ObservableBoolean（需 Preview/DDUI 支持）",
+    );
+  }
+  return new ObservableBooleanCtor(value);
+}
+
+function ensureStateBinding(
+  session: RuntimeSession,
+  screen: JsonObject,
+  name: string,
+): StateBinding | undefined {
+  const existing = session.bindings.get(`${text(screen.id)}:${name}`);
+  if (existing) return existing;
+  const definitions = isObject(screen.state) ? screen.state : {};
+  const definition = isObject(definitions[name]) ? definitions[name] : undefined;
+  if (!definition) return undefined;
+  switch (definition.type) {
+    case "boolean":
+      return booleanBinding(session, screen, name);
+    case "string":
+      return stringBinding(session, screen, name);
+    case "number":
+      return numberBinding(session, screen, name);
+    default:
+      return undefined;
+  }
+}
+
+function liveDisabled(
+  rawNode: JsonObject,
+  session: RuntimeSession,
+  screen: JsonObject,
+  aliases: JsonObject,
+): ObservableBoolean | undefined {
+  const cacheKey = `${text(screen.id)}:${text(rawNode.id)}:disabled`;
+  const control = resolveDisabledControl(rawNode.disabledWhen, {
+    derivedDefs: isObject(screen.derived) ? screen.derived : {},
+    getStateBoolean: (name) => {
+      const binding = ensureStateBinding(session, screen, name);
+      return binding?.kind === "boolean" ? binding.control : undefined;
+    },
+    subscribeState: (name, callback) => {
+      const binding = ensureStateBinding(session, screen, name);
+      binding?.control.subscribe(callback);
+    },
+    evaluate: () => widgetDisabled(rawNode, makeScope(session, screen, aliases)),
+    createDerived: (initial) => obsBoolView(initial),
+    existingDerived: session.disabledControls.get(cacheKey),
+  });
+  if (control) {
+    session.disabledControls.set(cacheKey, control as ObservableBoolean);
+  }
+  return control as ObservableBoolean | undefined;
+}
+
 function widgetFieldOptions(
   rawNode: JsonObject,
   scope: JsonObject,
+  session: RuntimeSession,
+  screen: JsonObject,
+  aliases: JsonObject,
   extra: Record<string, unknown> = {},
 ) {
   return {
     ...customFormFieldOptions({
       description: boundText(rawNode.description, scope),
       tooltip: boundText(rawNode.tooltip, scope),
-      disabled: widgetDisabled(rawNode, scope),
+      disabled: liveDisabled(rawNode, session, screen, aliases),
+      fixedFormatDigits:
+        typeof rawNode.fixedFormatDigits === "number"
+          ? rawNode.fixedFormatDigits
+          : undefined,
     }),
     ...extra,
   };
+}
+
+function widgetTooltip(rawNode: JsonObject, scope: JsonObject): { tooltip?: string } {
+  const tooltip = boundText(rawNode.tooltip, scope);
+  return tooltip ? { tooltip } : {};
+}
+
+/** 已发布 SDK 的 Page.header/label 还没有 options；运行时若已升级则生效。 */
+type TextWriter = (text: string, options?: { tooltip?: string }) => unknown;
+
+function writeHeader(page: Page, text: string, options?: { tooltip?: string }): void {
+  (page.header as TextWriter)(text, options);
+}
+
+function writeLabel(page: Page, text: string, options?: { tooltip?: string }): void {
+  (page.label as TextWriter)(text, options);
 }
 
 
@@ -577,24 +669,30 @@ function renderNodes(
       continue;
     switch (rawNode.type) {
       case "header":
-        page.header(
+        writeHeader(
+          page,
           tonePrefix(rawNode.tone) +
             text(bindString(text(rawNode.text), scope)),
+          widgetTooltip(rawNode, scope),
         );
         break;
       case "text":
-        page.label(
+        writeLabel(
+          page,
           tonePrefix(rawNode.tone) +
             text(bindString(text(rawNode.text), scope)),
+          widgetTooltip(rawNode, scope),
         );
         break;
       case "info":
         if (Array.isArray(rawNode.items)) {
-          page.label(
+          writeLabel(
+            page,
             tonePrefix(rawNode.tone) +
               rawNode.items
                 .map((item) => text(bindString(text(item), scope)))
                 .join("\n"),
+            widgetTooltip(rawNode, scope),
           );
         }
         break;
@@ -603,7 +701,28 @@ function renderNodes(
           source: bindString(text(rawNode.source), scope),
           pack: bindString(text(rawNode.pack), scope),
         });
-        if (image) page.image(image.src, image.pack);
+        if (image) {
+          page.image(image.src, image.pack, {
+            ...customFormImageOptions({
+              width: typeof rawNode.width === "number" ? rawNode.width : undefined,
+              tooltip: boundText(rawNode.tooltip, scope),
+            }),
+            ...(rawNode.trigger
+              ? {
+                  onClick: () => {
+                    scope = makeScope(session, screen, aliases);
+                    void trigger(
+                      rawNode.trigger,
+                      session,
+                      screen,
+                      aliases,
+                      status,
+                    );
+                  },
+                }
+              : {}),
+          });
+        }
         break;
       }
       case "divider":
@@ -617,7 +736,7 @@ function renderNodes(
         page.textField(
           boundText(rawNode.label, scope),
           binding.control as ObservableString,
-          widgetFieldOptions(rawNode, scope),
+          widgetFieldOptions(rawNode, scope, session, screen, aliases),
         );
         break;
       }
@@ -626,7 +745,7 @@ function renderNodes(
         page.toggle(
           boundText(rawNode.label, scope),
           binding.control as ObservableBoolean,
-          widgetFieldOptions(rawNode, scope),
+          widgetFieldOptions(rawNode, scope, session, screen, aliases),
         );
         break;
       }
@@ -637,7 +756,7 @@ function renderNodes(
           binding.control as ObservableNumber,
           Number(rawNode.min),
           Number(rawNode.max),
-          widgetFieldOptions(rawNode, scope, {
+          widgetFieldOptions(rawNode, scope, session, screen, aliases, {
             step: typeof rawNode.step === "number" ? rawNode.step : 1,
           }),
         );
@@ -656,16 +775,18 @@ function renderNodes(
         page.dropdown(
           boundText(rawNode.label, scope),
           binding.control as ObservableNumber,
-          options.map((option, index) => ({
-            label: text(option.label),
-            value: index,
-          })),
-          widgetFieldOptions(rawNode, scope),
+          customFormDropdownItems(
+            options.map((option) => ({
+              label: boundText(option.label, scope),
+              description: boundText(option.description, scope),
+            })),
+          ),
+          widgetFieldOptions(rawNode, scope, session, screen, aliases),
         );
         break;
       }
       case "button": {
-        const disabled = widgetDisabled(rawNode, scope);
+        const disabled = liveDisabled(rawNode, session, screen, aliases);
         const imageDetails = customFormButtonImageDetails({
           icon: bindString(text(rawNode.icon), scope),
           iconPack: bindString(text(rawNode.iconPack), scope),
@@ -748,6 +869,7 @@ export async function openDeclarativeScreen(
     params: new Map([[screenId, params]]),
     data: new Map(),
     bindings: new Map(),
+    disabledControls: new Map(),
   };
   for (const [id, screen] of feature.screens) {
     nav.section(id, text(screen.name, text(screen.title, id)), (page) =>

@@ -31,14 +31,18 @@
       "id": "section-display",
       "type": "header",
       "text": "展示类",
-      "tone": "accent"
+      "tone": "accent",
+      "tooltip": "header 的 TextOptions.tooltip"
     },
     {
       "id": "banner",
       "type": "image",
       "source": "{{data.demo.imageSrc}}",
       "pack": "{{data.demo.imagePack}}",
-      "alt": "示例图"
+      "alt": "示例图",
+      "width": 48,
+      "tooltip": "点击刷新",
+      "trigger": { "type": "refresh" }
     },
     { "id": "after-image", "type": "divider" },
     { "id": "gap", "type": "spacer", "size": "medium" },
@@ -75,8 +79,8 @@
       "tooltip": "下拉悬停提示",
       "disabledWhen": { "ref": "state.locked" },
       "options": [
-        { "label": "甲", "value": "a" },
-        { "label": "乙", "value": "b" }
+        { "label": "甲", "value": "a", "description": "第一项说明" },
+        { "label": "乙", "value": "b", "description": "第二项说明" }
       ]
     },
     {
@@ -87,6 +91,7 @@
       "min": 1,
       "max": 10,
       "step": 1,
+      "fixedFormatDigits": 0,
       "description": "滑块说明",
       "tooltip": "滑块悬停提示",
       "disabledWhen": { "ref": "state.locked" }

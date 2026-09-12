@@ -2,8 +2,9 @@
 
 export function catalogDemoData(): Record<string, unknown> {
   return {
-    imagePack: "vanilla",
-    imageSrc: "textures/ui/icon_recipe_nature",
+    // 测试世界已启用的 [RP] DogeLake（world_resource_packs.json）
+    imagePack: "70201c92-14fd-4227-a774-ed0ed6d29ce2",
+    imageSrc: "textures/items/kanameisi.png",
     items: [
       { id: "alpha", name: "甲项" },
       { id: "beta", name: "乙项" },

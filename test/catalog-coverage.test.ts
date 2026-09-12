@@ -85,8 +85,8 @@ test("控件目录覆盖全部已接线的节点、触发器和效果", () => {
 
 test("目录示例数据可供 each 与 image 使用", () => {
   const demo = catalogDemoData();
-  assert.equal(typeof demo.imagePack, "string");
-  assert.equal(typeof demo.imageSrc, "string");
+  assert.equal(demo.imagePack, "70201c92-14fd-4227-a774-ed0ed6d29ce2");
+  assert.equal(demo.imageSrc, "textures/items/kanameisi.png");
   assert.ok(Array.isArray(demo.items) && demo.items.length > 0);
   assert.deepEqual(catalogEcho({ text: "hi" }), { ok: true, message: "hi" });
 });

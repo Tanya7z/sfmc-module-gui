@@ -4,8 +4,10 @@ import {
   customFormButtonImageDetails,
   customFormButtonLabel,
   customFormButtonTooltip,
+  customFormDropdownItems,
   customFormFieldOptions,
   customFormImageArgs,
+  customFormImageOptions,
 } from "../sapi/src/ddui-widgets.ts";
 
 test("图像必须同时给出 source 与 pack 才映射到 CustomForm.image", () => {
@@ -61,5 +63,39 @@ test("输入控件 description 与 tooltip 分列，并可带禁用", () => {
   assert.deepEqual(customFormFieldOptions({ description: "下方说明" }), {
     description: "下方说明",
   });
+  assert.deepEqual(
+    customFormFieldOptions({
+      description: "滑块",
+      fixedFormatDigits: 0,
+    }),
+    { description: "滑块", fixedFormatDigits: 0 },
+  );
+});
+
+test("输入控件 disabled 是 Observable 时原样下传，不能拍成静态 true", () => {
+  const live = { getData: () => false };
+  const options = customFormFieldOptions({ disabled: live });
+  assert.equal(options.disabled, live);
+});
+
+test("图像 options 只写出 width 与 tooltip", () => {
+  assert.deepEqual(customFormImageOptions({ width: 48, tooltip: "图标" }), {
+    width: 48,
+    tooltip: "图标",
+  });
+  assert.deepEqual(customFormImageOptions({ width: -1 }), {});
+});
+
+test("下拉项带上 description，value 仍是稳定下标", () => {
+  assert.deepEqual(
+    customFormDropdownItems([
+      { label: "甲", value: "a", description: "第一项" },
+      { label: "乙", value: "b" },
+    ]),
+    [
+      { label: "甲", value: 0, description: "第一项" },
+      { label: "乙", value: 1 },
+    ],
+  );
 });
 
