@@ -1,19 +1,11 @@
-# @sfmc-bds/module-gui
+# @sfmc-bds/module-gui（已退役）
 
-Wave B official SFMC module: **gui**（声明式界面运行时）.
+独立 `gui` 模块已移除，不再安装、构建或发布。
 
-本模块只负责注册、解释和显示 `*.ui.json` 页面，不再提供主菜单、管理员聚合页、`/menu` 命令或快捷道具。未来的综合主菜单应作为独立模块，通过 `gui.listEntries` 获取入口并调用 `gui.openScreen`。
+声明式 JSON UI 运行时已经收编到平台 SDK：
 
-## Develop
+- 业务模块通过 `@sfmc-bds/sdk/sapi/ui` 注册并打开页面；
+- 原 `gui.registerFeature`、`gui.unregisterFeature`、`gui.openScreen` 服务已取消；
+- `/c:catalog` 控件验收目录已迁移到 `@sfmc-bds/module-qa`。
 
-```bash
-npm install
-npm run typecheck
-npm test
-```
-
-Install into platform:
-
-```bash
-sfmc mod install gui --from dir:. --link
-```
+本仓库仅保留为历史入口，运行时代码以平台 SDK 为准。

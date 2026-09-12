@@ -1,4 +1,0 @@
-{
-  "busy_retry_ticks": 10,
-  "busy_max_retries": 16
-}
